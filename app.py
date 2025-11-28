@@ -11,6 +11,9 @@ import requests
 
 warnings.filterwarnings("ignore")
 
+BRAIN_MODEL_AVAILABLE = False
+brain_tumor_model = None
+
 #Load Brain Tumor Model from AWS S3 (public link)
 
 BRAIN_MODEL_URL = "https://multi-disease-model-storage.s3.ap-south-1.amazonaws.com/models/brain_tumor_prediction_model.h5"
@@ -24,6 +27,14 @@ def load_brain_model():
     return tf.keras.models.load_model(temp_file.name)
 
 brain_tumor_model = load_brain_model()
+
+try:
+    brain_tumor_model = load_brain_model()
+    BRAIN_MODEL_AVAILABLE = True
+except Exception as e:
+    print("Brain tumor model could not be loaded from S3:", e)
+    brain_tumor_model = None
+    BRAIN_MODEL_AVAILABLE = False
 
 # -------------------------------------------------------------------
 # Paths
@@ -48,9 +59,7 @@ breast_model = pickle.load(open(MODELS_DIR / "breast_cancer.sav", "rb"))
 # except Exception:
 #     brain_tumor_model = None
 #     BRAIN_MODEL_AVAILABLE = False
-
-
-
+# --- Brain Tumor Model (initialized before loading) ---
 # -------------------------------------------------------------------
 # Sidebar Navigation
 # -------------------------------------------------------------------
