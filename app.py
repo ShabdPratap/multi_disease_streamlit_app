@@ -6,8 +6,24 @@ from streamlit_option_menu import option_menu
 from PIL import Image
 import tensorflow as tf
 import warnings
+import tempfile
+import requests
 
 warnings.filterwarnings("ignore")
+
+#Load Brain Tumor Model from AWS S3 (public link)
+
+BRAIN_MODEL_URL = "https://multi-disease-model-storage.s3.ap-south-1.amazonaws.com/models/brain_tumor_prediction_model.h5"
+
+@st.cache_resource
+def load_brain_model():
+    response = requests.get(BRAIN_MODEL_URL)
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".h5")
+    temp_file.write(response.content)
+    temp_file.close()
+    return tf.keras.models.load_model(temp_file.name)
+
+brain_tumor_model = load_brain_model()
 
 # -------------------------------------------------------------------
 # Paths
@@ -23,19 +39,17 @@ heart_model = pickle.load(open(MODELS_DIR / "heart_disease_model.sav", "rb"))
 parkinson_model = pickle.load(open(MODELS_DIR / "parkinsons_model.sav", "rb"))
 breast_model = pickle.load(open(MODELS_DIR / "breast_cancer.sav", "rb"))
 
-# -------------------------------------------------------------------
-# Try loading brain tumor CNN (.h5)
-#   - Works on your local machine (file exists)
-#   - On Streamlit Cloud (no .h5) -> just disables that page
-# -------------------------------------------------------------------
-try:
-    brain_tumor_model = tf.keras.models.load_model(
-        MODELS_DIR / "brain_tumor_model.h5"
-    )
-    BRAIN_MODEL_AVAILABLE = True
-except Exception:
-    brain_tumor_model = None
-    BRAIN_MODEL_AVAILABLE = False
+# -------------------------------------------------------------------------
+# try:
+#     brain_tumor_model = tf.keras.models.load_model(
+#         MODELS_DIR / "brain_tumor_model.h5"
+#     )
+#     BRAIN_MODEL_AVAILABLE = True
+# except Exception:
+#     brain_tumor_model = None
+#     BRAIN_MODEL_AVAILABLE = False
+
+
 
 # -------------------------------------------------------------------
 # Sidebar Navigation
